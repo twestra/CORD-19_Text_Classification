@@ -150,7 +150,10 @@ for r in paths:
 times = math.ceil(math.log(len(vocab), 2))
 times = int(times)
 
+#contains entropies using beforeTrain model for all test sets in before folder
 entropiesBeforeTrainBeforeTests = []
+
+#contains entropies using afterTrain model for all test sets in before folder
 entropiesAfterTrainBeforeTests = []
 
 for x in range(0, len(beforeTestSet)):
@@ -187,7 +190,10 @@ for x in range(0, len(beforeTestSet)):
     entropiesAfterTrainBeforeTests.append(entropyAfterTrainBeforeTest)
 #
 
+#contains entropies using beforeTrain model for all test sets in after folder
 entropiesBeforeTrainAfterTests = []
+
+#contains entropies using afterTrain model for all test sets in before folder
 entropiesAfterTrainAfterTests = []
 
 for x in range(0, len(afterTestSet)):
@@ -240,6 +246,7 @@ for r in range(0, len(entropiesBeforeTrainAfterTests)):
     entropiesBeforeTrainAfterTests[r] = afterTestSet[r] + ': ' + str(entropiesBeforeTrainAfterTests[r])
 #
 
+#print out information needed to write analysis for T4
 print('\n')
 print('Entropies for afterTrain & afterTests: ' + str(entropiesAfterTrainAfterTests))
 print('\n')
