@@ -522,31 +522,31 @@ for r in paths:
 print('\n')
 
 #provides information about test set performance for works published on or after a median date
-print("Test Set for works published AFTER medianDate")
+print("Test Set for works published ON OR AFTER medianDate")
 percentCorrect = (afterTestCorrect) / (1.0 * (afterTestCorrect + afterTestWrong))
 percentCorrect = percentCorrect * 100
-print("% Correct: " + str(percentCorrect))
+print("% Correct Classification: " + str(percentCorrect))
 percentWrong = (afterTestWrong) / (1.0 * (afterTestCorrect + afterTestWrong))
 percentWrong = percentWrong * 100
-print("% Wrong: " + str(percentWrong))
+print("% Wrong Classification: " + str(percentWrong))
 print("\n")
 
 #provides information about test set performance for works published before a median date
 print("Test Set for works published BEFORE medianDate")
 percentCorrect = (beforeTestCorrect) / (1.0 * (beforeTestCorrect + beforeTestWrong))
 percentCorrect = percentCorrect * 100
-print("% Correct: " + str(percentCorrect))
+print("% Correct Classification: " + str(percentCorrect))
 percentWrong = (beforeTestWrong) / (1.0 * (beforeTestCorrect + beforeTestWrong))
 percentWrong = percentWrong * 100
-print("% Wrong: " + str(percentWrong))
+print("% Wrong Classification: " + str(percentWrong))
 print("\n")
 
 #provides information about performance of all tests
 print("All Test Sets")
 percentCorrect = (correct) / (1.0 * (correct + wrong))
 percentCorrect = percentCorrect * 100
-print("% Correct: " + str(percentCorrect))
+print("% Correct Classification: " + str(percentCorrect))
 percentWrong = (wrong) / (1.0 * (correct + wrong))
 percentWrong = percentWrong * 100
-print("% Wrong: " + str(percentWrong))
+print("% Wrong Classification: " + str(percentWrong))
 print("\n")
