@@ -84,7 +84,7 @@ if((os.path.isfile('probsInBeforeTrain.txt') == False) & (os.path.isfile('probsI
     print('\n')
     print('T3 IS BEING RUN TO GET NECESSARY FILES')
     print('--------------------------------')
-    os.system('python T3.py before after')
+    os.system('python T3.py ' + beforePath + ' ' + afterPath)
     print('--------------------------------')
     print('GOT NECESSARY FILES NEEDED FOR T4')
     print('\n')
@@ -99,11 +99,6 @@ file3 = open('vocab.txt', 'r')
 vocab = file3.readlines()
 probsInBefore = file1.readlines()
 probsInAfter = file2.readlines()
-
-#delete all files that we used so far
-os.remove('probsInBeforeTrain.txt')
-os.remove('probsInAfterTrain.txt')
-os.remove('vocab.txt')
 
 for x in range(0, len(probsInAfter)):
     probsInAfter[x] = probsInAfter[x][0: probsInAfter[x].rfind('\n')]
@@ -151,22 +146,106 @@ for r in paths:
     #
 #
 
+#contains the maximum number of times to search for something within vocab using binary search
+times = math.ceil(math.log(len(vocab), 2))
+times = int(times)
+
+entropiesBeforeTrainBeforeTests = []
+entropiesAfterTrainBeforeTests = []
+
 for x in range(0, len(beforeTestSet)):
     setOfTokens = getTokens(beforeTestSet[x])
+    entropyBeforeTrainBeforeTest = 0.0
+    entropyAfterTrainBeforeTest = 0.0
     for y in setOfTokens:
-        #look up index for y in vocab using binary search
-        #look up probsInAfter[index]
-        #look up probsInBefore[index]
-        pass
+        index = -1
+        first = 0
+        last = len(vocab) - 1
+        if(y == vocab[len(vocab) - 1]):
+            index = len(vocab) - 1
+        else:
+            for c in range(0, times):
+                middle = int((first + last)/2)
+                if(vocab[middle] == y):
+                    index = middle
+                    break
+                elif(vocab[middle] > y):
+                    last = middle
+                elif(vocab[middle] < y):
+                    first = middle
+                #
+            #
+        #
+        if(index != -1):
+           entropyAfterTrainBeforeTest = entropyAfterTrainBeforeTest + math.log(probsInAfter[index])
+           entropyBeforeTrainBeforeTest = entropyBeforeTrainBeforeTest + math.log(probsInBefore[index])
+        #       
     #
+    entropyBeforeTrainBeforeTest = (entropyBeforeTrainBeforeTest * -1) / (1.0 * len(setOfTokens))
+    entropyAfterTrainBeforeTest = (entropyAfterTrainBeforeTest * -1) / (1.0 * len(setOfTokens))
+    entropiesBeforeTrainBeforeTests.append(entropyBeforeTrainBeforeTest)
+    entropiesAfterTrainBeforeTests.append(entropyAfterTrainBeforeTest)
 #
+
+entropiesBeforeTrainAfterTests = []
+entropiesAfterTrainAfterTests = []
 
 for x in range(0, len(afterTestSet)):
     setOfTokens = getTokens(afterTestSet[x])
+    entropyBeforeTrainAfterTest = 0.0
+    entropyAfterTrainAfterTest = 0.0
     for y in setOfTokens:
-        #look up index for y in vocab using binary search
-        #look up probsInAfter[index]
-        #look up probsInBefore[index]
-        pass
+        index = -1
+        first = 0
+        last = len(vocab) - 1
+        if(y == vocab[len(vocab) - 1]):
+            index = len(vocab) - 1
+        else:
+            for c in range(0, times):
+                middle = int((first + last)/2)
+                if(vocab[middle] == y):
+                    index = middle
+                    break
+                elif(vocab[middle] > y):
+                    last = middle
+                elif(vocab[middle] < y):
+                    first = middle
+                #
+            #
+        #
+        if(index != -1):
+           entropyAfterTrainAfterTest = entropyAfterTrainAfterTest + math.log(probsInAfter[index])
+           entropyBeforeTrainAfterTest = entropyBeforeTrainAfterTest + math.log(probsInBefore[index])
+        #
     #
+    entropyBeforeTrainAfterTest = (entropyBeforeTrainAfterTest * -1) / (1.0 * len(setOfTokens))
+    entropyAfterTrainAfterTest = (entropyAfterTrainAfterTest * -1) / (1.0 * len(setOfTokens))
+    entropiesBeforeTrainAfterTests.append(entropyBeforeTrainAfterTest)
+    entropiesAfterTrainAfterTests.append(entropyAfterTrainAfterTest)
 #
+
+for r in range(0, len(entropiesAfterTrainBeforeTests)):
+    entropiesAfterTrainBeforeTests[r] = beforeTestSet[r] + ': ' + str(entropiesAfterTrainBeforeTests[r])
+#
+
+for r in range(0, len(entropiesBeforeTrainBeforeTests)):
+    entropiesBeforeTrainBeforeTests[r] = beforeTestSet[r] + ': ' + str(entropiesBeforeTrainBeforeTests[r])
+#
+
+for r in range(0, len(entropiesAfterTrainAfterTests)):
+    entropiesAfterTrainAfterTests[r] = afterTestSet[r] + ': ' + str(entropiesAfterTrainAfterTests[r])
+#
+
+for r in range(0, len(entropiesBeforeTrainAfterTests)):
+    entropiesBeforeTrainAfterTests[r] = afterTestSet[r] + ': ' + str(entropiesBeforeTrainAfterTests[r])
+#
+
+print('\n')
+print('Entropies for afterTrain & afterTests: ' + entropiesAfterTrainAfterTests)
+print('\n')
+print('Entropies for afterTrain & beforeTests: ' + entropiesAfterTrainBeforeTests)
+print('\n')
+print('Entropies for beforeTrain & afterTests: ' + entropiesBeforeTrainAfterTests)
+print('\n')
+print('Entropies for beforeTrain & beforeTests: ' + entropiesBeforeTrainBeforeTests)
+print('\n')
