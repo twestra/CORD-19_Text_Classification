@@ -36,8 +36,8 @@ Deliverables:
     this assignment to be done. This assignment could have been due on May 18 or 19. 
     Normally, we have no trouble completing projects on time.
     
-    What did you learn from this assignment? I learned that certain 
-    
+    What did you learn from this assignment? I learned how to implement a system that
+    uses Naive Bayes Text Classification. 
 ________________________________________________________   
 File List and Use Instructions:
 
@@ -53,5 +53,7 @@ File List and Use Instructions:
     
     - T3.py: This file contains implementation of T3. It uses naive Bayes Text Classification to create a model which
     will be used when determining whether a certain text was written before, on or after a median date. This program takes
-    two inputs. This is the format of the command line:
+    two inputs. This is the format of the terminal command line prompt:
            python T3.py /path/to/beforeSet /path/to/afterSet
+           
+    - T4.py: 
