@@ -241,11 +241,11 @@ for r in range(0, len(entropiesBeforeTrainAfterTests)):
 #
 
 print('\n')
-print('Entropies for afterTrain & afterTests: ' + entropiesAfterTrainAfterTests)
+print('Entropies for afterTrain & afterTests: ' + str(entropiesAfterTrainAfterTests))
 print('\n')
-print('Entropies for afterTrain & beforeTests: ' + entropiesAfterTrainBeforeTests)
+print('Entropies for afterTrain & beforeTests: ' + str(entropiesAfterTrainBeforeTests))
 print('\n')
-print('Entropies for beforeTrain & afterTests: ' + entropiesBeforeTrainAfterTests)
+print('Entropies for beforeTrain & afterTests: ' + str(entropiesBeforeTrainAfterTests))
 print('\n')
-print('Entropies for beforeTrain & beforeTests: ' + entropiesBeforeTrainBeforeTests)
+print('Entropies for beforeTrain & beforeTests: ' + str(entropiesBeforeTrainBeforeTests))
 print('\n')
