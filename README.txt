@@ -11,6 +11,7 @@ Tasks:
     - T4: Implemented in the file T4.py
 ________________________________________________________
 Deliverables:
+
     - D2: The train and test sets can be found in the directories "before" and "after". Each directory contains a train and test directory, which in turn contain a set of files. The files are split into the respective "before" and "after" directory based on whether they were published before or after the median published date. The files are further split up into "test" or "train" randomly, where each directory contains 1/10 and 9/10 of the total split files (i.e. if there are 10,000 files altogether, "before" contains 5,000, and "after contains 5,000. Each directory's"test" and train" contain 500 and 4500 files, respectively)
     
     - D3:
@@ -54,6 +55,6 @@ File List and Use Instructions:
     - T3.py: This file contains implementation of T3. It uses naive Bayes Text Classification to create a model which
     will be used when determining whether a certain text was written before, on or after a median date. This program takes
     two inputs. This is the format of the terminal command line prompt:
-           python T3.py /path/to/beforeSet /path/to/afterSet
+       *****    python T3.py /path/to/beforeSet /path/to/afterSet   *****
            
     - T4.py: 
