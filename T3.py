@@ -2,237 +2,551 @@ import json
 import csv
 import os
 import sys
+import math
 from random import randint
 from pprint import pprint
 
 args = sys.argv
 
-jsonPath = args[1]
-beforePath = args[2]
-afterPath = args[3]
-csvPath = args[4]
+#argument to folder containing train and test sets for works published before a median date
+beforePath = args[1]
 
-#Generate 1/10 of len(numbers) from numbers
-#PARAMATERS
-    #setLength = length of set we would like to generate numbers for
-def generate_Numbers(setLength):
-    nums = {}
-    while len(nums) < (setLength/10):
-        val = randint(0, setLength)
-        if val not in nums:
-            nums[val] = 0
-    return nums
+#argument to folder containing train and test sets for works published on or after a median date
+afterPath = args[2]
 
-#Take the paths given as input, and make our directories
-#Format is:
-#python T2.py /path/to/json_folder /path/to/beforeSet /path/to/afterSet
-#We then populate beforeSet and Afterset with their training and test data
-def make_paths():
-    #Make our two base directories
-    try:
-        os.mkdir(beforePath)
-    except OSError:
-        print(f"Creation of the directory {beforePath} failed")
-    else:
-        print(f"Succesfully created the directory {beforePath}")
-    try:
-        os.mkdir(afterPath)
-    except OSError:
-        print(f"Creation of the directory {afterPath} failed")
-    else:
-        print(f"Succesfully created the directory {afterPath}")
-    
-    
-    #make our four subdirectories
-    beforePathTrain = beforePath+"/train"
-    beforePathTest = beforePath+"/test"
-    afterPathTrain = afterPath+"/train"
-    afterPathTest = afterPath+"/test"
-    try:
-        os.mkdir(beforePathTrain)
-    except OSError:
-        print(f"Creation of the directory {beforePathTrain} failed")
-    else:
-        print(f"Succesfully created the directory {beforePathTrain}")
-        
-    try:
-        os.mkdir(beforePathTest)
-    except OSError:
-        print(f"Creation of the directory {beforePathTest} failed")
-    else:
-        print(f"Succesfully created the directory {beforePathTest}")
-    
-    try:
-        os.mkdir(afterPathTrain)
-    except OSError:
-        print(f"Creation of the directory {afterPathTrain} failed")
-    else:
-        print(f"Succesfully created the directory {afterPathTrain}")
-    
-    try:
-        os.mkdir(afterPathTest)
-    except OSError:
-        print(f"Creation of the directory {afterPathTest} failed")
-    else:
-        print(f"Succesfully created the directory {afterPathTest}")
+#will contain all distinct unigrams in the entire dataset
+vocab = set()
 
-    return beforePathTrain, beforePathTest, afterPathTrain, afterPathTest
+#we will need to explore all the files in the train and test sets for works published before a median date
+paths = os.walk(beforePath)
 
+#will contain every token that is present in the train set for works published before a median date
+tokensInBeforeTrain = []
 
-#Create two lists: one, the list of file ids made before the median (sorted by date), and two, the list of file ids made after the median date (sorted by date)
-def build_DateSets():
-    idDict ={}
-    dateDict = {}
-    finalList = []
-    jsonDirectory = os.fsencode(jsonPath)
-    
-    #Make a list of all author ids, taken from the json files
-    for file in os.listdir(jsonDirectory):
-        filename = jsonPath + "/"+os.fsdecode(file)
-        with open(filename) as json_file:
-            data = json.load(json_file)
-            idDict[data.get("paper_id")] = 1
-            #print("Appended"+data.get("paper_id"))
-    
-    
-    #we now have the list of id's - we now need to build a list of the dates. Make a dictionary of key value pairs where key is id, and value is date.
-    with open(csvPath) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        for row in csv_reader:
-            if row[1] in idDict:
-                dateDict[row[1]] = row[9]
-    
-    #We now sort the list by date. Python's sort handles this easily, thankfully (we do convert to list first)
-    DateList = [(k, v) for k, v in dateDict.items()]
-    DateList.sort(key=lambda x:x[1])
-    
-    #This is our sorted list of ids
-    idList = [x[0] for x in DateList]
-    
-    #We define the median literally as the halfway point (i.e. #of dates/2). This means that for odd number sets (like sets of length 7) the after set will have 1 more data point.
-    median = int((len(idList)/2))
-    beforeList = idList[:median]
-    afterList = idList[median:]
-    
-    return beforeList, afterList
+print("Processing Training Data for works published before median date ...")
 
+for r in paths:
 
-#This function is just a clean way to write the data we want from the source file to the correct destination file
-#PARAMATERS
-    #sourceFile = file we want to read from
-    #writeFile = file we want to write to
-def write_Data(sourceFile, destFile):
-    
-    #First open and read all data into our list
-    with open(sourceFile) as source_file:
-        wholeData = json.load(source_file)
-        textList = []
-        
-        #Go through the entire file, find each instance of text in abstract and body_text and add to our final list
-        for item in wholeData:
-            if item == "abstract":
-                index = 0
-                for dict in wholeData["abstract"]:
-                    for subitem in dict:
-                        if subitem == "text":
-                            textList.append(wholeData["abstract"][index]["text"])
-                    index+=1
+    if(r[0].find('/') != -1):
+
+        #we will need to look at all files in a train or test set
+        for f in r[2]:
+
+            pathToFile = r[0] + '/' + f
+
+            #open a file
+            file = open(pathToFile, 'r')
+
+            #create a list containing all lines from a file
+            lines = file.readlines()
+
+            for x in range(0, len(lines)):
+                
+                if(lines[x].rfind('\n') == len(lines[x]) - 1):
+
+                   #delete '\n' at the end of lines[x] if it is present
+                   lines[x] = lines[x][0: lines[x].rfind('\n')]
+
+                   #as far as punctuation marks are concerned, we need to space them out appropriately
+                   lines[x] = lines[x].replace("(", " ( ")
+                   lines[x] = lines[x].replace(")", " ) ")
+                   lines[x] = lines[x].replace(",", " , ")
+                   lines[x] = lines[x].replace("?", " ? ")
+                   lines[x] = lines[x].replace(";", " ; ")
+                   lines[x] = lines[x].replace("!", " ! ")
+                   lines[x] = lines[x].replace("[", " [ ")
+                   lines[x] = lines[x].replace("]", " ] ")
+                   
+                   #convert lines[x] into series of tokens contained in lines[x]
+                   lines[x] = lines[x].split()
+
+                   #counts number of times a period has to be spaced out appropriately
+                   countForPeriods = 0
+
+                   #counts number of times a colon has to be spaced out appropriately
+                   countForColons = 0
+                   
+                   #find out number of times colons and periods have to be spaced out appropriately
+                   for y in range(0, len(lines[x])):
+                       if(len(lines[x][y]) > 1):
+                          if(lines[x][y][len(lines[x][y]) - 1] == '.'):
+                            lines[x][y] = lines[x][y][0: len(lines[x][y]) - 1]
+                            countForPeriods = countForPeriods + 1
+                          elif(lines[x][y][len(lines[x][y]) - 1] == ':'):
+                            lines[x][y] = lines[x][y][0: len(lines[x][y]) - 1]
+                            countForColons = countForColons + 1
+                          #
+                       #
+                   #
+
+                   #append a period at the end of lines[x] for countForPeriod times
+                   for z in range(0, countForPeriods):
+                       lines[x].append('.')
+                   #
+
+                   #append a colon at the end of lines[x] for countForColons times
+                   for z in range(0, countForColons):
+                       lines[x].append(':')
+                   #
+
+                #
+            #
             
-            if item == "body_text":
-                index = 0
-                for dict in wholeData["body_text"]:
-                    for subitem in dict:
-                        if subitem == "text":
-                            textList.append(wholeData["body_text"][index]["text"])
-                    index+=1
-    #We give permission to write to this file
-    with open(destFile, "w+") as dest_file:
-        for text in textList:
-            dest_file.write(text+"\n")
+            for x in range(0, len(lines)):
+                #add tokens contained in lines[x] to vocab set
+                for y in range(0, len(lines[x])):
+                    vocab.add(lines[x][y])
+                #
+            #
+
+            if(pathToFile.find("/train") != -1):
+                #if file is part of a train set, then add all tokens to tokensInBeforeTrain list
+                for x in range(0, len(lines)):
+                    for y in range(0, len(lines[x])):
+                        tokensInBeforeTrain.append(lines[x][y])
+                    #
+                #
+            #
+
+        #
+    #
+#
+
+print("Processing Training Data for works published on or after median date ...")
+
+#we will need to explore all the files in the train and test sets for works published on or after a median date
+paths = os.walk(afterPath)
+
+#will contain every token that is present in the test set for works published before a median date
+tokensInAfterTrain = []
+
+for r in paths:
+    if(r[0].find('/') != -1):
+        for f in r[2]:
+            pathToFile = r[0] + '/' + f
+            file = open(pathToFile, 'r')
+            lines = file.readlines()
+            for x in range(0, len(lines)):
+                if(lines[x].rfind('\n') == len(lines[x]) - 1):
+                   lines[x] = lines[x][0: lines[x].rfind('\n')]
+                   lines[x] = lines[x].replace("(", " ( ")
+                   lines[x] = lines[x].replace(")", " ) ")
+                   lines[x] = lines[x].replace(",", " , ")
+                   lines[x] = lines[x].replace("?", " ? ")
+                   lines[x] = lines[x].replace(";", " ; ")
+                   lines[x] = lines[x].replace("!", " ! ")
+                   lines[x] = lines[x].replace("[", " [ ")
+                   lines[x] = lines[x].replace("]", " ] ")
+
+                   lines[x] = lines[x].split()
+
+                   countForPeriods = 0
+                   countForColons = 0
+
+                   for y in range(0, len(lines[x])):
+                       if(len(lines[x][y]) > 1):
+                          if(lines[x][y][len(lines[x][y]) - 1] == '.'):
+                            lines[x][y] = lines[x][y][0: len(lines[x][y]) - 1]
+                            countForPeriods = countForPeriods + 1
+                          elif(lines[x][y][len(lines[x][y]) - 1] == ':'):
+                            lines[x][y] = lines[x][y][0: len(lines[x][y]) - 1]
+                            countForColons = countForColons + 1
+                          #
+                       #
+                   #
+
+                   for z in range(0, countForPeriods):
+                       lines[x].append('.')
+                   #
+
+                   for z in range(0, countForColons):
+                       lines[x].append(':')
+                   #
+
+                #
+            #
+            
+            for x in range(0, len(lines)):
+                for y in range(0, len(lines[x])):
+                    vocab.add(lines[x][y])
+                #
+            #
+
+            if(pathToFile.find("/train") != -1):
+                for x in range(0, len(lines)):
+                    for y in range(0, len(lines[x])):
+                        tokensInAfterTrain.append(lines[x][y])
+                    #
+                #
+            #
+
+        #
+    #
+#
+
+print("Add 1 Smoothing being done right now...")
+
+#convert vocab set into a list
+vocab = list(vocab)
+
+#sort all tokens in vocab
+vocab.sort()
+
+#used to keep track of # of occurrences of each token in all train sets for works published before median date
+countsInBeforeTrain = []
+
+#used to keep track of # of occurrences of each token in all train sets for works published on or after median date
+countsInAfterTrain = []
+
+#has all add-1 smoothing estimates needed for tokens contained in train sets for works published before median date
+probsInBefore = []
+
+#has all add-1 smoothing estimates needed for tokens contained in train sets for works published on or after median date
+probsInAfter = []
+
+for x in range(0, len(vocab)):
+    countsInAfterTrain.append(0)
+    countsInBeforeTrain.append(0)
+    probsInBefore.append(0)
+    probsInAfter.append(0)
+#
+
+#contains the maximum number of times to search for something within vocab using binary search
+times = math.ceil(math.log(len(vocab), 2))
+times = int(times)
+
+for x in tokensInBeforeTrain:
+    index = -1
+    first = 0
+    last = len(vocab) - 1
+    if(x == vocab[len(vocab) - 1]):
+       index = len(vocab) - 1
+    else:
+       for c in range(0, times):
+           middle = int((first + last)/2)
+           if(vocab[middle] == x):
+              index = middle
+              break
+           elif(vocab[middle] > x):
+              last = middle
+           elif(vocab[middle] < x):
+              first = middle
+           #
+       #
+    #
+
+    if(index != -1):
+       countsInBeforeTrain[index] = countsInBeforeTrain[index] + 1
+    #
+#
+
+for x in tokensInAfterTrain:
+    index = -1
+    first = 0
+    last = len(vocab) - 1
+    if(x == vocab[len(vocab) - 1]):
+       index = len(vocab) - 1
+    else:
+       for c in range(0, times):
+           middle = int((first + last)/2)
+           if(vocab[middle] == x):
+              index = middle
+              break
+           elif(vocab[middle] > x):
+              last = middle
+           elif(vocab[middle] < x):
+              first = middle
+           #
+       #
+    #
+
+    if(index != -1):
+       countsInAfterTrain[index] = countsInAfterTrain[index] + 1
+    #
+#
+
+#sum of all counts in countsInBeforeTrain
+sumForBefore = sum(countsInBeforeTrain)
+
+#sum of all counts in countsInAfterTrain
+sumForAfter = sum(countsInAfterTrain)
+
+#compute add-1 smoothing for train sets containing works published before median date
+for x in range(0, len(probsInBefore)):
+    probsInBefore[x] = (countsInBeforeTrain[x] + 1) / (1.0 * (sumForBefore + len(vocab)))
+#
+
+#compute add-1 smoothing for train sets containing works published on or after median date
+for x in range(0, len(probsInAfter)):
+    probsInAfter[x] = (countsInAfterTrain[x] + 1) / (1.0 * (sumForAfter + len(vocab)))
+#
+
+print("Performing tests right now...")
+
+paths = os.walk(beforePath)
+
+#used to keep track of all the times model gives correct classification
+correct = 0
+
+#used to keep track of all the times model gives wrong classification
+wrong = 0
+
+for r in paths:
+    if(r[0].find("/test") != -1):
+        for f in r[2]:
+            pathToFile = r[0] + '/' + f
+            file = open(pathToFile, 'r')
+            lines = file.readlines()
+            for x in range(0, len(lines)):
+                if(lines[x].rfind('\n') == len(lines[x]) - 1):
+                    lines[x] = lines[x][0: lines[x].rfind('\n')]
+                    lines[x] = lines[x].replace("(", " ( ")
+                    lines[x] = lines[x].replace(")", " ) ")
+                    lines[x] = lines[x].replace(",", " , ")
+                    lines[x] = lines[x].replace("?", " ? ")
+                    lines[x] = lines[x].replace(";", " ; ")
+                    lines[x] = lines[x].replace("!", " ! ")
+                    lines[x] = lines[x].replace("[", " [ ")
+                    lines[x] = lines[x].replace("]", " ] ")
+                   
+                    lines[x] = lines[x].split()
+                    countForPeriods = 0
+                    countForColons = 0
+                   
+                    for y in range(0, len(lines[x])):
+                       if(len(lines[x][y]) > 1):
+                          if(lines[x][y][len(lines[x][y]) - 1] == '.'):
+                            lines[x][y] = lines[x][y][0: len(lines[x][y]) - 1]
+                            countForPeriods = countForPeriods + 1
+                          elif(lines[x][y][len(lines[x][y]) - 1] == ':'):
+                            lines[x][y] = lines[x][y][0: len(lines[x][y]) - 1]
+                            countForColons = countForColons + 1
+                          #
+                       #
+                    # 
+
+                    for z in range(0, countForPeriods):
+                       lines[x].append('.')
+                    #
+
+                    for z in range(0, countForColons):
+                       lines[x].append(':')
+                    #
+                #
+            #
+
+            classType = pathToFile[0: pathToFile.find('/')]
+
+            #instead of multiplying probabilities, adopt alternative method as underflow is bound to happen whether log space is used or not
+            #Example of alternative method being used is shown below
+
+            '''
+            Example:
+            Let's say we have two numbers, productOfProbs1 and productOfProbs2
+            We want to see which one of the two numbers is the highest
+
+            productOfProbs1 = 0.6 * 0.8 * 0.7 
+            productOfProbs2 = 0.3 * 0.2 * 0.4  
+
+            The best way to see which one of the two numbers is the highest is to compute log10(0.6/0.3) + log10(0.8/0.2) + log10(0.7/0.4)
+
+            if log10(0.6/0.3) + log10(0.8/0.2) + log10(0.7/0.4) is less than 0 --> productOfProbs1 is less than productOfProbs2
+            -> (productOfProbs1 / productOfProbs2) = 10^(some negative #)
+
+            if log10(0.6/0.3) + log10(0.8/0.2) + log10(0.7/0.4) is greater than 0 --> productOfProbs1 is greater than productOfProbs2
+            -> (productOfProbs1 / productOfProbs2) = 10^(some positive #)
+
+            if log10(0.6/0.3) + log10(0.8/0.2) + log10(0.7/0.4) is equal to 0 --> productOfProbs1 is equal to productOfProbs2
+            -> (productOfProbs1 / productOfProbs2) = 10^(0)
+
+            '''
+
+            powers = 0
+
+            for x in range(0, len(lines)):
+                for y in range(0, len(lines[x])):
+                    target = lines[x][y]
+                    index = -1
+                    first = 0
+                    last = len(vocab) - 1
+                    if(target == vocab[len(vocab) - 1]):
+                        index = len(vocab) - 1
+                    else:
+                        for c in range(0, times):
+                            middle = int((first + last)/2)
+                            if(vocab[middle] == target):
+                                index = middle
+                                break
+                            elif(vocab[middle] > target):
+                                last = middle
+                            elif(vocab[middle] < target):
+                                first = middle
+                            #
+                        #
+                    #
+                    
+                    num = probsInAfter[index] / (1.0 * probsInBefore[index])
+                    powers = powers + math.log(num, 10)
+
+                #
+            #
+
+            classInstance = ''
+
+            if(powers >= 0):
+               classInstance = 'after'
+            elif(powers < 0):
+               classInstance = 'before'
+            #
+
+            if(classInstance == classType):
+                correct = correct + 1
+            else:
+                wrong = wrong + 1
+            #
+
+        #
+    #
+#
+
+#used to keep track of all times when model gave correct classification for test set files for works published before medianDate
+beforeTestCorrect = correct
+
+#used to keep track of all times when model gave wrong classification for test set files for works published before medianDate
+beforeTestWrong = wrong
+
+#used to keep track of all times when model gave correct classification for test set files for works published on or after medianDate
+afterTestCorrect = 0
+
+#used to keep track of all times when model gave wrong classification for test set files for works published on or after medianDate
+afterTestWrong = 0
 
 
+paths = os.walk(afterPath)
 
+for r in paths:
+    if(r[0].find("/test") != -1):
+        for f in r[2]:
+            pathToFile = r[0] + '/' + f
+            file = open(pathToFile, 'r')
+            lines = file.readlines()
+            for x in range(0, len(lines)):
+                if(lines[x].rfind('\n') == len(lines[x]) - 1):
+                    lines[x] = lines[x][0: lines[x].rfind('\n')]
+                    lines[x] = lines[x].replace("(", " ( ")
+                    lines[x] = lines[x].replace(")", " ) ")
+                    lines[x] = lines[x].replace(",", " , ")
+                    lines[x] = lines[x].replace("?", " ? ")
+                    lines[x] = lines[x].replace(";", " ; ")
+                    lines[x] = lines[x].replace("!", " ! ")
+                    lines[x] = lines[x].replace("[", " [ ")
+                    lines[x] = lines[x].replace("]", " ] ")
+                   
+                    lines[x] = lines[x].split()
+                    countForPeriods = 0
+                    countForColons = 0
+                   
+                    for y in range(0, len(lines[x])):
+                       if(len(lines[x][y]) > 1):
+                          if(lines[x][y][len(lines[x][y]) - 1] == '.'):
+                            lines[x][y] = lines[x][y][0: len(lines[x][y]) - 1]
+                            countForPeriods = countForPeriods + 1
+                          elif(lines[x][y][len(lines[x][y]) - 1] == ':'):
+                            lines[x][y] = lines[x][y][0: len(lines[x][y]) - 1]
+                            countForColons = countForColons + 1
+                          #
+                       #
+                    # 
 
-#Make files in the four given paths, with the two given lists of file ids
-#PARAMATERS
-    #beforePathTrain = path for our directory of training files from our beforeList
-    #beforePathTest = path of our directory of test files from our beforeList
-    #afterPathTrain = path for our directory of training files from our afterList
-    #afterPathTest = path for our directory of test files from our afterList
-    #beforeList = list of file ids before median, sorted by date
-    #afterList = list of file ids after median, sorted by date
-def create_Files(beforePathTrain, beforePathTest, afterPathTrain, afterPathTest, beforeList, afterList, beforeNumbers, afterNumbers):
-    #Go through the list. Open the json file of each id, then write the text the appropriate folder to the appropriate file.
-    #We keep x as a way to track the index
-    x = 0
-    for id in beforeList:
-        idSource = jsonPath+"/"+id+".json"
-        if x not in beforeNumbers:
-            trainDest = beforePathTrain+"/"+id+".txt"
-            write_Data(idSource, trainDest)
-        else:
-            testDest = beforePathTest+"/"+id+".txt"
-            write_Data(idSource, testDest)
-        x+=1
-        
-    x = 0
-    for id in afterList:
-        idSource = jsonPath+"/"+id+".json"
-        if x not in afterNumbers:
-            trainDest = afterPathTrain+"/"+id+".txt"
-            write_Data(idSource, trainDest)
-        else:
-            testDest = afterPathTest+"/"+id+".txt"
-            write_Data(idSource, testDest)
-        x+=1
+                    for z in range(0, countForPeriods):
+                       lines[x].append('.')
+                    #
 
-#    id = beforeList[0]
-#    idSource = jsonPath+"/"+id+".json"
-#    trainDest = beforePathTrain+"/"+id+".txt"
-#    write_Data(idSource, trainDest)
+                    for z in range(0, countForColons):
+                       lines[x].append(':')
+                    #
+                #
+            #
 
-# This function creates a bag of words from the files in a certain directory
-def bag_of_words(articlePath):
-    all_words = []
-    bag = dict()
-    
-    articleDirectory = os.fsencode(articlePath)
+            classType = pathToFile[0: pathToFile.find('/')]
+            powers = 0
 
-    #print(os.listdir(articleDirectory))
-    for article in os.listdir(articleDirectory):
-        filename = articlePath + "/"+os.fsdecode(article)
-        print(filename)
+            for x in range(0, len(lines)):
+                for y in range(0, len(lines[x])):
+                    target = lines[x][y]
+                    index = -1
+                    first = 0
+                    last = len(vocab) - 1
+                    if(target == vocab[len(vocab) - 1]):
+                        index = len(vocab) - 1
+                    else:
+                        for c in range(0, times):
+                            middle = int((first + last)/2)
+                            if(vocab[middle] == target):
+                                index = middle
+                                break
+                            elif(vocab[middle] > target):
+                                last = middle
+                            elif(vocab[middle] < target):
+                                first = middle
+                            #
+                        #
+                    #
+                    
+                    num = probsInAfter[index] / (1.0 * probsInBefore[index])
+                    powers = powers + math.log(num, 10)
 
-        with open(filename) as article_file:
-            for line in article_file:
-                for word in line.split():
-                    all_words.append(word)
+                #
+            #
 
-    for token in all_words:
-        if token in bag:
-            bag[word] + = 1
-        else:
-            bag[word] = 1
+            classInstance = ''
 
-    return bag
+            if(powers >= 0):
+               classInstance = 'after'
+            elif(powers < 0):
+               classInstance = 'before'
+            #
 
-def naive_bayes_add1(bag_of_words, data):
-    
+            if(classInstance == classType):
+                correct = correct + 1
+                afterTestCorrect = afterTestCorrect + 1
+            else:
+                wrong = wrong + 1
+                afterTestWrong = afterTestWrong + 1
+            #
 
-def runner():
-    #create our file paths and our lists
-    beforePathTrain, beforePathTest, afterPathTrain, afterPathTest = make_paths()
-    beforeList, afterList = build_DateSets()
-    
-    #generate the indices of our test sets
-    beforeNumbers = generate_Numbers(len(beforeList))
-    afterNumbers = generate_Numbers(len(afterList))
-    
-    #Now, create the files
-    create_Files(beforePathTrain, beforePathTest, afterPathTrain, afterPathTest, beforeList, afterList, beforeNumbers, afterNumbers)
+        #
+    #
+#
 
-    bow_before = bag_of_words(beforePathTrain)
-    bow_after = bag_of_words(afterPathTrain)
-    
-runner()
+print('\n')
 
+#provides information about test set performance for works published on or after a median date
+print("Test Set for works published AFTER medianDate")
+percentCorrect = (afterTestCorrect) / (1.0 * (afterTestCorrect + afterTestWrong))
+percentCorrect = percentCorrect * 100
+print("% Correct: " + str(percentCorrect))
+percentWrong = (afterTestWrong) / (1.0 * (afterTestCorrect + afterTestWrong))
+percentWrong = percentWrong * 100
+print("% Wrong: " + str(percentWrong))
+print("\n")
+
+#provides information about test set performance for works published before a median date
+print("Test Set for works published BEFORE medianDate")
+percentCorrect = (beforeTestCorrect) / (1.0 * (beforeTestCorrect + beforeTestWrong))
+percentCorrect = percentCorrect * 100
+print("% Correct: " + str(percentCorrect))
+percentWrong = (beforeTestWrong) / (1.0 * (beforeTestCorrect + beforeTestWrong))
+percentWrong = percentWrong * 100
+print("% Wrong: " + str(percentWrong))
+print("\n")
+
+#provides information about performance of all tests
+print("All Test Sets")
+percentCorrect = (correct) / (1.0 * (correct + wrong))
+percentCorrect = percentCorrect * 100
+print("% Correct: " + str(percentCorrect))
+percentWrong = (wrong) / (1.0 * (correct + wrong))
+percentWrong = percentWrong * 100
+print("% Wrong: " + str(percentWrong))
+print("\n")
