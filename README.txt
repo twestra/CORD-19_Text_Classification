@@ -16,8 +16,27 @@ Deliverables:
     
     - D3:
     T3 Analysis:
+        Results - 
+        Test Set for works published ON OR AFTER medianDate
+        % Correct Classification: 81.3432835821
+        % Wrong Classification: 18.6567164179
+
+
+        Test Set for works published BEFORE medianDate
+        % Correct Classification: 51.4925373134
+        % Wrong Classification: 48.5074626866
+
+
+        All Test Sets
+        % Correct Classification: 66.4179104478
+        % Wrong Classification: 33.5820895522
+        ---------------
+        Analysis - For the test set related to works published before a median date, the accuracy of my model seems fairly   low. It is possible that words that have a high probability of occuring in works published on or after a median date outweigh those that have a high probability of occuring in works published before a median date. A high occurrence of stop words or punctuation can have an effect on whether a text is correctly classified by my model. If stop words or punctuation were not present in works published before a median date, the accuracy of my model could have been higher. For the test set related to works published on or after a median date, the accuracy of my model seems high. There may have been many words in works published on or after a median date that were absent in works published before a median date.
     
     T4 Analysis:
+        Results
+        
+        Analysis - 
     
     - D4: 
     What was easy about this assignment? The easy part about this assignment was computing
