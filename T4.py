@@ -8,241 +8,165 @@ import math
 
 args = sys.argv
 
-jsonPath = args[1]
-beforePath = args[2]
-afterPath = args[3]
-csvPath = args[4]
+beforePath = args[1]
+afterPath = args[2]
 
-#Generate 1/10 of len(numbers) from numbers
-#PARAMATERS
-    #setLength = length of set we would like to generate numbers for
-def generate_Numbers(setLength):
-    nums = {}
-    while len(nums) < (setLength/10):
-        val = randint(0, setLength)
-        if val not in nums:
-            nums[val] = 0
-    return nums
+def getTokens(fileName):
 
-#Take the paths given as input, and make our directories
-#Format is:
-#python T2.py /path/to/json_folder /path/to/beforeSet /path/to/afterSet
-#We then populate beforeSet and Afterset with their training and test data
-def make_paths():
-    #Make our two base directories
-    try:
-        os.mkdir(beforePath)
-    except OSError:
-        print(f"Creation of the directory {beforePath} failed")
-    else:
-        print(f"Succesfully created the directory {beforePath}")
-    try:
-        os.mkdir(afterPath)
-    except OSError:
-        print(f"Creation of the directory {afterPath} failed")
-    else:
-        print(f"Succesfully created the directory {afterPath}")
-    
-    
-    #make our four subdirectories
-    beforePathTrain = beforePath+"/train"
-    beforePathTest = beforePath+"/test"
-    afterPathTrain = afterPath+"/train"
-    afterPathTest = afterPath+"/test"
-    try:
-        os.mkdir(beforePathTrain)
-    except OSError:
-        print(f"Creation of the directory {beforePathTrain} failed")
-    else:
-        print(f"Succesfully created the directory {beforePathTrain}")
-        
-    try:
-        os.mkdir(beforePathTest)
-    except OSError:
-        print(f"Creation of the directory {beforePathTest} failed")
-    else:
-        print(f"Succesfully created the directory {beforePathTest}")
-    
-    try:
-        os.mkdir(afterPathTrain)
-    except OSError:
-        print(f"Creation of the directory {afterPathTrain} failed")
-    else:
-        print(f"Succesfully created the directory {afterPathTrain}")
-    
-    try:
-        os.mkdir(afterPathTest)
-    except OSError:
-        print(f"Creation of the directory {afterPathTest} failed")
-    else:
-        print(f"Succesfully created the directory {afterPathTest}")
+    file = open(fileName, 'r')
 
-    return beforePathTrain, beforePathTest, afterPathTrain, afterPathTest
+    #create a list containing all lines from a file
+    lines = file.readlines()
+    allTokens = []
 
+    for x in range(0, len(lines)):
+                
+        if(lines[x].rfind('\n') == len(lines[x]) - 1):
 
-#Create two lists: one, the list of file ids made before the median (sorted by date), and two, the list of file ids made after the median date (sorted by date)
-def build_DateSets():
-    idDict ={}
-    dateDict = {}
-    finalList = []
-    jsonDirectory = os.fsencode(jsonPath)
-    
-    #Make a list of all author ids, taken from the json files
-    for file in os.listdir(jsonDirectory):
-        filename = jsonPath + "/"+os.fsdecode(file)
-        with open(filename, encoding='utf-8') as json_file:
-            data = json.load(json_file)
-            idDict[data.get("paper_id")] = 1
-            #print("Appended"+data.get("paper_id"))
-    
-    
-    #we now have the list of id's - we now need to build a list of the dates. Make a dictionary of key value pairs where key is id, and value is date.
-    with open(csvPath, encoding='utf-8') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        for row in csv_reader:
-            if row[1] in idDict:
-                dateDict[row[1]] = row[9]
-    
-    #We now sort the list by date. Python's sort handles this easily, thankfully (we do convert to list first)
-    DateList = [(k, v) for k, v in dateDict.items()]
-    DateList.sort(key=lambda x:x[1])
-    
-    #This is our sorted list of ids
-    idList = [x[0] for x in DateList]
-    
-    #We define the median literally as the halfway point (i.e. #of dates/2). This means that for odd number sets (like sets of length 7) the after set will have 1 more data point.
-    median = int((len(idList)/2))
-    beforeList = idList[:median]
-    afterList = idList[median:]
-    
-    return beforeList, afterList
+            #delete '\n' at the end of lines[x] if it is present
+            lines[x] = lines[x][0: lines[x].rfind('\n')]
 
+            #as far as punctuation marks are concerned, we need to space them out appropriately
+            lines[x] = lines[x].replace("(", " ( ")
+            lines[x] = lines[x].replace(")", " ) ")
+            lines[x] = lines[x].replace(",", " , ")
+            lines[x] = lines[x].replace("?", " ? ")
+            lines[x] = lines[x].replace(";", " ; ")
+            lines[x] = lines[x].replace("!", " ! ")
+            lines[x] = lines[x].replace("[", " [ ")
+            lines[x] = lines[x].replace("]", " ] ")
+                   
+            #convert lines[x] into series of tokens contained in lines[x]
+            lines[x] = lines[x].split()
 
-#This function is just a clean way to write the data we want from the source file to the correct destination file
-#PARAMATERS
-    #sourceFile = file we want to read from
-    #writeFile = file we want to write to
-def write_Data(sourceFile, destFile):
-    
-    #First open and read all data into our list
-    with open(sourceFile, encoding='utf-8') as source_file:
-        wholeData = json.load(source_file)
-        textList = []
-        
-        #Go through the entire file, find each instance of text in abstract and body_text and add to our final list
-        for item in wholeData:
-            if item == "abstract":
-                index = 0
-                for dict in wholeData["abstract"]:
-                    for subitem in dict:
-                        if subitem == "text":
-                            textList.append(wholeData["abstract"][index]["text"])
-                    index+=1
-            
-            if item == "body_text":
-                index = 0
-                for dict in wholeData["body_text"]:
-                    for subitem in dict:
-                        if subitem == "text":
-                            textList.append(wholeData["body_text"][index]["text"])
-                    index+=1
-    #We give permission to write to this file
-    with open(destFile, "w+", encoding='utf-8') as dest_file:
-        for text in textList:
-            dest_file.write(text+"\n")
+            #counts number of times a period has to be spaced out appropriately
+            countForPeriods = 0
 
+            #counts number of times a colon has to be spaced out appropriately
+            countForColons = 0
+                   
+            #find out number of times colons and periods have to be spaced out appropriately
+            for y in range(0, len(lines[x])):
+                if(len(lines[x][y]) > 1):
+                    if(lines[x][y][len(lines[x][y]) - 1] == '.'):
+                        lines[x][y] = lines[x][y][0: len(lines[x][y]) - 1]
+                        countForPeriods = countForPeriods + 1
+                    elif(lines[x][y][len(lines[x][y]) - 1] == ':'):
+                        lines[x][y] = lines[x][y][0: len(lines[x][y]) - 1]
+                        countForColons = countForColons + 1
+                    #
+                #
+            #
 
+            #append a period at the end of lines[x] for countForPeriod times
+            for z in range(0, countForPeriods):
+                lines[x].append('.')
+            #
 
+            #append a colon at the end of lines[x] for countForColons times
+            for z in range(0, countForColons):
+                lines[x].append(':')
+            #
+        #
 
-#Make files in the four given paths, with the two given lists of file ids
-#PARAMATERS
-    #beforePathTrain = path for our directory of training files from our beforeList
-    #beforePathTest = path of our directory of test files from our beforeList
-    #afterPathTrain = path for our directory of training files from our afterList
-    #afterPathTest = path for our directory of test files from our afterList
-    #beforeList = list of file ids before median, sorted by date
-    #afterList = list of file ids after median, sorted by date
-def create_Files(beforePathTrain, beforePathTest, afterPathTrain, afterPathTest, beforeList, afterList, beforeNumbers, afterNumbers):
-    #Go through the list. Open the json file of each id, then write the text the appropriate folder to the appropriate file.
-    #We keep x as a way to track the index
-    x = 0
-    for id in beforeList:
-        idSource = jsonPath+"/"+id+".json"
-        if x not in beforeNumbers:
-            trainDest = beforePathTrain+"/"+id+".txt"
-            write_Data(idSource, trainDest)
-        else:
-            testDest = beforePathTest+"/"+id+".txt"
-            write_Data(idSource, testDest)
-        x+=1
-        
-    x = 0
-    for id in afterList:
-        idSource = jsonPath+"/"+id+".json"
-        if x not in afterNumbers:
-            trainDest = afterPathTrain+"/"+id+".txt"
-            write_Data(idSource, trainDest)
-        else:
-            testDest = afterPathTest+"/"+id+".txt"
-            write_Data(idSource, testDest)
-        x+=1
+        for z in range(0, len(lines[x])):
+            allTokens.append(lines[x][z])
+        #
 
-#    id = beforeList[0]
-#    idSource = jsonPath+"/"+id+".json"
-#    trainDest = beforePathTrain+"/"+id+".txt"
-#    write_Data(idSource, trainDest)
+    #
 
-def compute_cross_entropy(articlePath):
-    all_words = []
-    frequencies = dict()
-    probabilities = dict()
-    token_count = 0
-    vocab = 0
-    cross_entropy = 0
-    
-    articleDirectory = os.fsencode(articlePath)
+    return allTokens
 
-    for article in os.listdir(articleDirectory):
-        filename = articlePath + "/"+os.fsdecode(article)
+#
 
-        with open(filename, encoding='utf-8') as article_file:
-            for line in article_file:
-                for word in line.split():
-                    all_words.append(word)
+#if files do not exist, run T3 to get files needed for T4
+if((os.path.isfile('probsInBeforeTrain.txt') == False) & (os.path.isfile('probsInAfterTrain.txt') == False) & (os.path.isfile('vocab.txt') == False)):
+    print('\n')
+    print('T3 IS BEING RUN TO GET NECESSARY FILES')
+    print('--------------------------------')
+    os.system('python T3.py before after')
+    print('--------------------------------')
+    print('GOT NECESSARY FILES NEEDED FOR T4')
+    print('\n')
+#
 
-    for word in all_words:
-        frequencies[word] = frequencies.get(word, 0) + 1
-        token_count += 1
-        
-    vocab = len(frequencies) - 2
+#open necessary files for T4
+file1 = open('probsInBeforeTrain.txt', 'r')
+file2 = open('probsInAfterTrain.txt', 'r')
+file3 = open('vocab.txt', 'r')
 
-    for word in frequencies:
-        prob_numer = frequencies[word] + 1
-        prob_denom = token_count + vocab + 1
+#store file contents into variables
+vocab = file3.readlines()
+probsInBefore = file1.readlines()
+probsInAfter = file2.readlines()
 
-        probabilities[word] = float(prob_numer) / float(prob_denom)
+#delete all files that we used so far
+os.remove('probsInBeforeTrain.txt')
+os.remove('probsInAfterTrain.txt')
+os.remove('vocab.txt')
 
-    for word in probabilities:
-        cross_entropy += math.log(probabilities[word], 2)
+for x in range(0, len(probsInAfter)):
+    probsInAfter[x] = probsInAfter[x][0: probsInAfter[x].rfind('\n')]
+    probsInAfter[x] = float(probsInAfter[x])
+#
 
-    cross_entropy = cross_entropy * -(1 / token_count)
+for x in range(0, len(probsInBefore)):
+    probsInBefore[x] = probsInBefore[x][0: probsInBefore[x].rfind('\n')]
+    probsInBefore[x] = float(probsInBefore[x])
+#
 
-    print(cross_entropy)
-    
-def runner():
-    #create our file paths and our lists
-    beforePathTrain, beforePathTest, afterPathTrain, afterPathTest = make_paths()
-    beforeList, afterList = build_DateSets()
-    
-    #generate the indices of our test sets
-    beforeNumbers = generate_Numbers(len(beforeList))
-    afterNumbers = generate_Numbers(len(afterList))
-    
-    #Now, create the files
-    create_Files(beforePathTrain, beforePathTest, afterPathTrain, afterPathTest, beforeList, afterList, beforeNumbers, afterNumbers)
+for x in range(0, len(vocab)):
+    vocab[x] = vocab[x][0: vocab[x].rfind('\n')]
+#
 
-    #Lastly, compute the cross entropies
-    compute_cross_entropy(beforePathTrain)
-    compute_cross_entropy(afterPathTrain)
-runner()
+#will store the names of all files in the before test set
+beforeTestSet = None
 
+paths = os.walk(beforePath)
+
+for r in paths:
+    if(r[0].find("/test") != -1):
+       pathToSet = r[0]
+       allFiles = []
+       for k in range(0, len(r[2])):
+           allFiles.append(pathToSet + '/' + r[2][k])
+       #
+       beforeTestSet = allFiles
+    #
+#
+
+#will store the names of all files in the after test set
+afterTestSet = None
+
+paths = os.walk(afterPath)
+
+for r in paths:
+    if(r[0].find("/test") != -1):
+       pathToSet = r[0]
+       allFiles = []
+       for k in range(0, len(r[2])):
+           allFiles.append(pathToSet + '/' + r[2][k])
+       #
+       afterTestSet = allFiles
+    #
+#
+
+for x in range(0, len(beforeTestSet)):
+    setOfTokens = getTokens(beforeTestSet[x])
+    for y in setOfTokens:
+        #look up index for y in vocab using binary search
+        #look up probsInAfter[index]
+        #look up probsInBefore[index]
+        pass
+    #
+#
+
+for x in range(0, len(afterTestSet)):
+    setOfTokens = getTokens(afterTestSet[x])
+    for y in setOfTokens:
+        #look up index for y in vocab using binary search
+        #look up probsInAfter[index]
+        #look up probsInBefore[index]
+        pass
+    #
+#

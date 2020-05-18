@@ -550,3 +550,30 @@ percentWrong = (wrong) / (1.0 * (correct + wrong))
 percentWrong = percentWrong * 100
 print("% Wrong Classification: " + str(percentWrong))
 print("\n")
+
+
+#create three files that can be used for T4
+#this technique of creating three files for T4 will be similar to caching (storing results in a place for future use)
+#this is done, so T4 will be efficient
+
+if(os.path.isfile('vocab.txt') == False):
+    vocabFile = open('vocab.txt', 'w')
+    for x in vocab:
+        vocabFile.write(x + '\n')
+    #
+#
+
+if(os.path.isfile('probsInBeforeTrain.txt') == False):
+    probsInBeforeFile = open('probsInBeforeTrain.txt', 'w')
+    for x in probsInBefore:
+        probsInBeforeFile.write(str(x) + '\n')
+    #
+#
+
+if(os.path.isfile('probsInAfterTrain.txt') == False):
+    probsInAfterFile = open('probsInAfterTrain.txt', 'w')
+    for x in probsInAfter:
+        probsInAfterFile.write(str(x) + '\n')
+    #
+#
+
