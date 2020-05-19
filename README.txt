@@ -35,7 +35,11 @@ Deliverables:
     
     T4 Analysis:
         Results - 
-        
+        Entropy for afterTrain & afterTests: 7.03404204314
+	Entropy for beforeTrain & afterTests: 7.1096702671
+	Entropy for afterTrain & beforeTests: 7.2698277675
+	Entropy for beforeTrain & beforeTests: 7.23029130731
+	
         Analysis - 
     
     D4: 
