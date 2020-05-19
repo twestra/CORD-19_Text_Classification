@@ -40,7 +40,7 @@ Deliverables:
 	Entropy for afterTrain & beforeTests: 7.2698277675
 	Entropy for beforeTrain & beforeTests: 7.23029130731
 	
-        Analysis - 
+        Analysis - The smallest cross entropy was for the training and test sets for works published after the median date, while the highest cross entropy was for the training set for works published after the median date and the test set for works published before the median date. In general, we noticed that the two smallest cross entropies were for the test sets for works published after the median date and that the two largets cross entropies were for the test sets for works published before the median date. The cross entropy was probably lower for the test sets for works published after the median date because the info was more established, while for works published before the median date were not.
     
     D4: 
     What was easy about this assignment? The easy part about this assignment was computing
