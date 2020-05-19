@@ -15,7 +15,7 @@ Deliverables:
     D2: The train and test sets can be found in the directories "before" and "after". Each directory contains a train and test directory, which in turn contain a set of files. The files are split into the respective "before" and "after" directory based on whether they were published before or after the median published date. The files are further split up into "test" or "train" randomly, where each directory contains 1/10 and 9/10 of the total split files (i.e. if there are 10,000 files altogether, "before" contains 5,000, and "after contains 5,000. Each directory's"test" and train" contain 500 and 4500 files, respectively)
     
     D3:
-    T3 Analysis:
+      T3 Analysis:
         Results - 
         Test Set for works published ON OR AFTER medianDate
         % Correct Classification: 81.3432835821
@@ -33,7 +33,7 @@ Deliverables:
         ------------------------------
         Analysis - For the test set related to works published before a median date, the accuracy of my model seems fairly   low. It is possible that tokens that have a high probability of occuring in works published on or after a median date outweigh those that have a high probability of occuring in works published before a median date. A high occurrence of stop words or punctuation can have an effect on whether a text is correctly classified by my model. If stop words or punctuation were not present in works published before a median date, the accuracy of my model could have been higher. For the test set related to works published on or after a median date, the accuracy of my model seems high. There may have been many tokens in works published on or after a median date that were absent in works published before a median date.
     
-    T4 Analysis:
+      T4 Analysis:
         Results - 
         Entropy for afterTrain & afterTests: 7.03404204314
 	Entropy for beforeTrain & afterTests: 7.1096702671
