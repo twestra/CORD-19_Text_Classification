@@ -30,7 +30,7 @@ Deliverables:
         All Test Sets
         % Correct Classification: 66.4179104478
         % Wrong Classification: 33.5820895522
-        ---------------
+        ------------------------------
         Analysis - For the test set related to works published before a median date, the accuracy of my model seems fairly   low. It is possible that tokens that have a high probability of occuring in works published on or after a median date outweigh those that have a high probability of occuring in works published before a median date. A high occurrence of stop words or punctuation can have an effect on whether a text is correctly classified by my model. If stop words or punctuation were not present in works published before a median date, the accuracy of my model could have been higher. For the test set related to works published on or after a median date, the accuracy of my model seems high. There may have been many tokens in works published on or after a median date that were absent in works published before a median date.
     
     T4 Analysis:
@@ -39,7 +39,7 @@ Deliverables:
 	Entropy for beforeTrain & afterTests: 7.1096702671
 	Entropy for afterTrain & beforeTests: 7.2698277675
 	Entropy for beforeTrain & beforeTests: 7.23029130731
-	
+	------------------------------
         Analysis - The smallest cross entropy was for the training and test sets for works published after the median date, while the highest cross entropy was for the training set for works published after the median date and the test set for works published before the median date. In general, we noticed that the two smallest cross entropies were for the test sets for works published after the median date and that the two largets cross entropies were for the test sets for works published before the median date. The cross entropy was probably lower for the test sets for works published after the median date because the info was more established, while for works published before the median date were not.
     
     D4: 
