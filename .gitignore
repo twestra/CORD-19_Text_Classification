@@ -1,3 +1,6 @@
 .DS_Store
 biorxiv_medrxiv/
 metadata.csv
+vocab.txt
+probsInBeforeTrain.txt
+probsInAfterTrain.txt

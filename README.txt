@@ -75,5 +75,8 @@ File List and Use Instructions:
     will be used when determining whether a certain text was written before, on or after a median date. This program takes
     two inputs. This is the format of the terminal command line prompt:
        *****    python T3.py /path/to/beforeSet /path/to/afterSet   *****
+	T3 will output a few files that can be ignored, as they are used by T4 to more easily calculate cross entropies.
            
-    - T4.py: 
+    - T4.py: This file contains the implementation of T4. It calculates the four cross entropies (beforeTrain model on beforeTest data, beforeTrain model on afterTest data, afterTrain model on beforeTest data, and afterTrain model on afterTest data) as defined in the project description. In order to run the program, use the following format as command line input:
+	*****	python T4.py /path/to/beforeSet /path/to/afterSet   *****
+	Where beforeSet and afterSet are the paths to the directories output by T2.
