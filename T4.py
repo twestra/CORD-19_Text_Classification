@@ -150,109 +150,107 @@ for r in paths:
 times = math.ceil(math.log(len(vocab), 2))
 times = int(times)
 
-#contains entropies using beforeTrain model for all test sets in before folder
-entropiesBeforeTrainBeforeTests = []
-
-#contains entropies using afterTrain model for all test sets in before folder
-entropiesAfterTrainBeforeTests = []
+#contains all tokens in test set of before folder
+beforeTestSetTokens = []
 
 for x in range(0, len(beforeTestSet)):
     setOfTokens = getTokens(beforeTestSet[x])
-    entropyBeforeTrainBeforeTest = 0.0
-    entropyAfterTrainBeforeTest = 0.0
     for y in setOfTokens:
-        index = -1
-        first = 0
-        last = len(vocab) - 1
-        if(y == vocab[len(vocab) - 1]):
-            index = len(vocab) - 1
-        else:
-            for c in range(0, times):
-                middle = int((first + last)/2)
-                if(vocab[middle] == y):
-                    index = middle
-                    break
-                elif(vocab[middle] > y):
-                    last = middle
-                elif(vocab[middle] < y):
-                    first = middle
-                #
-            #
-        #
-        if(index != -1):
-           entropyAfterTrainBeforeTest = entropyAfterTrainBeforeTest + math.log(probsInAfter[index])
-           entropyBeforeTrainBeforeTest = entropyBeforeTrainBeforeTest + math.log(probsInBefore[index])
-        #       
+        beforeTestSetTokens.append(y)
     #
-    entropyBeforeTrainBeforeTest = (entropyBeforeTrainBeforeTest * -1) / (1.0 * len(setOfTokens))
-    entropyAfterTrainBeforeTest = (entropyAfterTrainBeforeTest * -1) / (1.0 * len(setOfTokens))
-    entropiesBeforeTrainBeforeTests.append(entropyBeforeTrainBeforeTest)
-    entropiesAfterTrainBeforeTests.append(entropyAfterTrainBeforeTest)
 #
 
-#contains entropies using beforeTrain model for all test sets in after folder
-entropiesBeforeTrainAfterTests = []
-
-#contains entropies using afterTrain model for all test sets in before folder
-entropiesAfterTrainAfterTests = []
+#contains all tokens in test set of after folder
+afterTestSetTokens = []
 
 for x in range(0, len(afterTestSet)):
     setOfTokens = getTokens(afterTestSet[x])
-    entropyBeforeTrainAfterTest = 0.0
-    entropyAfterTrainAfterTest = 0.0
     for y in setOfTokens:
-        index = -1
-        first = 0
-        last = len(vocab) - 1
-        if(y == vocab[len(vocab) - 1]):
-            index = len(vocab) - 1
-        else:
-            for c in range(0, times):
-                middle = int((first + last)/2)
-                if(vocab[middle] == y):
-                    index = middle
-                    break
-                elif(vocab[middle] > y):
-                    last = middle
-                elif(vocab[middle] < y):
-                    first = middle
-                #
+        afterTestSetTokens.append(y)
+    #
+#
+
+
+#computes cross entropy for beforeTrain and beforeTest
+entropyBeforeTrainBeforeTest = 0.0
+
+#computes cross entropy for beforeTrain and afterTest
+entropyBeforeTrainAfterTest = 0.0
+
+#computes cross entropy for afterTrain and beforeTest
+entropyAfterTrainBeforeTest = 0.0
+
+#computes cross entropy for afterTrain and afterTest
+entropyAfterTrainAfterTest = 0.0
+
+
+#using every token in every file of beforeTest, calculate cross entropies using beforeTrain model and afterTrain model
+for x in beforeTestSetTokens:
+    index = -1
+    first = 0
+    last = len(vocab) - 1
+    if(x == vocab[len(vocab) - 1]):
+        index = len(vocab) - 1
+    else:
+        for c in range(0, times):
+            middle = int((first + last)/2)
+            if(vocab[middle] == x):
+                index = middle
+                break
+            elif(vocab[middle] > x):
+                last = middle
+            elif(vocab[middle] < x):
+                first = middle
             #
         #
-        if(index != -1):
-           entropyAfterTrainAfterTest = entropyAfterTrainAfterTest + math.log(probsInAfter[index])
-           entropyBeforeTrainAfterTest = entropyBeforeTrainAfterTest + math.log(probsInBefore[index])
+    #
+    if(index != -1):
+        entropyBeforeTrainBeforeTest += math.log(probsInBefore[index])
+        entropyAfterTrainBeforeTest += math.log(probsInAfter[index])
+    #
+#
+
+#using every token in every file of afterTest, calculate cross entropies using beforeTrain model and afterTrain model
+for x in afterTestSetTokens:
+    index = -1
+    first = 0
+    last = len(vocab) - 1
+    if(x == vocab[len(vocab) - 1]):
+        index = len(vocab) - 1
+    else:
+        for c in range(0, times):
+            middle = int((first + last)/2)
+            if(vocab[middle] == x):
+                index = middle
+                break
+            elif(vocab[middle] > x):
+                last = middle
+            elif(vocab[middle] < x):
+                first = middle
+            #
         #
     #
-    entropyBeforeTrainAfterTest = (entropyBeforeTrainAfterTest * -1) / (1.0 * len(setOfTokens))
-    entropyAfterTrainAfterTest = (entropyAfterTrainAfterTest * -1) / (1.0 * len(setOfTokens))
-    entropiesBeforeTrainAfterTests.append(entropyBeforeTrainAfterTest)
-    entropiesAfterTrainAfterTests.append(entropyAfterTrainAfterTest)
+    if(index != -1):
+       entropyBeforeTrainAfterTest += math.log(probsInBefore[index])
+       entropyAfterTrainAfterTest += math.log(probsInAfter[index])
+    #
 #
 
-for r in range(0, len(entropiesAfterTrainBeforeTests)):
-    entropiesAfterTrainBeforeTests[r] = beforeTestSet[r] + ': ' + str(entropiesAfterTrainBeforeTests[r])
-#
+entropyBeforeTrainBeforeTest = entropyBeforeTrainBeforeTest * -1.0
+entropyBeforeTrainAfterTest = entropyBeforeTrainAfterTest * -1.0
+entropyAfterTrainBeforeTest = entropyAfterTrainBeforeTest * -1.0
+entropyAfterTrainAfterTest = entropyAfterTrainAfterTest * -1.0
 
-for r in range(0, len(entropiesBeforeTrainBeforeTests)):
-    entropiesBeforeTrainBeforeTests[r] = beforeTestSet[r] + ': ' + str(entropiesBeforeTrainBeforeTests[r])
-#
+entropyBeforeTrainBeforeTest = entropyBeforeTrainBeforeTest / len(beforeTestSetTokens)
+entropyBeforeTrainAfterTest = entropyBeforeTrainAfterTest / len(afterTestSetTokens)
+entropyAfterTrainBeforeTest = entropyAfterTrainBeforeTest / len(beforeTestSetTokens)
+entropyAfterTrainAfterTest = entropyAfterTrainAfterTest / len(afterTestSetTokens)
 
-for r in range(0, len(entropiesAfterTrainAfterTests)):
-    entropiesAfterTrainAfterTests[r] = afterTestSet[r] + ': ' + str(entropiesAfterTrainAfterTests[r])
-#
-
-for r in range(0, len(entropiesBeforeTrainAfterTests)):
-    entropiesBeforeTrainAfterTests[r] = afterTestSet[r] + ': ' + str(entropiesBeforeTrainAfterTests[r])
-#
 
 #print out information needed to write analysis for T4
 print('\n')
-print('Entropies for afterTrain & afterTests: ' + str(entropiesAfterTrainAfterTests))
-print('\n')
-print('Entropies for afterTrain & beforeTests: ' + str(entropiesAfterTrainBeforeTests))
-print('\n')
-print('Entropies for beforeTrain & afterTests: ' + str(entropiesBeforeTrainAfterTests))
-print('\n')
-print('Entropies for beforeTrain & beforeTests: ' + str(entropiesBeforeTrainBeforeTests))
+print('Entropy for afterTrain & afterTests: ' + str(entropyAfterTrainAfterTest))
+print('Entropy for beforeTrain & afterTests: ' + str(entropyBeforeTrainAfterTest))
+print('Entropy for afterTrain & beforeTests: ' + str(entropyAfterTrainBeforeTest))
+print('Entropy for beforeTrain & beforeTests: ' + str(entropyBeforeTrainBeforeTest))
 print('\n')
